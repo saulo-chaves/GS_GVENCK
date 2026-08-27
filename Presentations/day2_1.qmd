@@ -38,6 +38,7 @@ editor_options:
   chunk_output_type: console
 ---
 
+<br>
 
 <br>
 
@@ -66,11 +67,13 @@ Data Science for Plant Breeding Lab
 ::::
 
 :::: {style="font-size: 0.70em; opacity: 0.7;width: 70%;"}
-Piracicaba, September 1^st^
+Piracicaba, September 2^nd^
 ::::
 
 
 ![](C:/Users/saulo/OneDrive/Palestras/Misc/02-Esalq-Versao-completa-Ingles-Digital.png){.absolute top=20 left=0 width="350"}
+
+![](C:/Users/saulo/OneDrive/Palestras/Misc/logo_gvenck/GVENCK_Completa - Preta){.absolute top=10 left=380 width="240"}
 
 ## Objectives {.custom1}
 

@@ -45,6 +45,8 @@ editor_options:
 
 <br>
 
+<br>
+
 :::: {style="font-size: 1.7em; opacity: 0.9;width: 100%;"}
 [**Updates on genomic selection**]{.titles}
 ::::
@@ -72,6 +74,7 @@ Piracicaba, September 1^st^
 
 ![](C:/Users/saulo/OneDrive/Palestras/Misc/02-Esalq-Versao-completa-Ingles-Digital.png){.absolute top=20 left=0 width="350"}
 
+![](C:/Users/saulo/OneDrive/Palestras/Misc/logo_gvenck/GVENCK_Completa - Preta){.absolute top=10 left=380 width="240"}
 
 
 ## Objectives {.custom1}

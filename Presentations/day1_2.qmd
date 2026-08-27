@@ -45,6 +45,8 @@ editor_options:
 
 <br>
 
+<br>
+
 :::: {style="font-size: 1.7em; opacity: 0.9;width: 100%;"}
 [**Updates on genomic selection**]{.titles}
 ::::
@@ -71,6 +73,8 @@ Piracicaba, September 1^st^
 
 
 ![](C:/Users/saulo/OneDrive/Palestras/Misc/02-Esalq-Versao-completa-Ingles-Digital.png){.absolute top=20 left=0 width="350"}
+
+![](C:/Users/saulo/OneDrive/Palestras/Misc/logo_gvenck/GVENCK_Completa - Preta){.absolute top=10 left=380 width="240"}
 
 # Practical session {background-color="#b2bc63"}
 
@@ -529,7 +533,7 @@ load(file = "../bayesbmod.RData")
 ::::: columns
 ::: {.column width="45%"}
 
-::: {.callout-caution}
+::: {.callout-caution style="font-size: 1.2em;"}
 In [Bayesian models](https://github.com/storopoli/Estatistica-Bayesiana), you should mind the number of iterations, the burn-in phase and the thinning. The more, the better, but it will take longer for your model to run.
 :::
 
@@ -541,7 +545,7 @@ In [Bayesian models](https://github.com/storopoli/Estatistica-Bayesiana), you sh
 
 ```{=html}
 <div class="figure-with-source">
-  <img src="C:/Users/saulo/OneDrive/Palestras/Misc/gibbs.gif" style="width: 60%;" />
+  <img src="C:/Users/saulo/OneDrive/Palestras/Misc/gibbs.gif" style="width: 80%;" />
   <div class="figure-source">
     <a href="https://storopoli.github.io/Estatistica-Bayesiana/5-MCMC.html" target="_blank">Prof. Jose Storopoli</a>
   </div>
@@ -586,7 +590,7 @@ GEBV_bb = data.frame(Hybrid = dat$gen, GEBV = BayesB$yHat)
 cor(GEBV, GEBV_bb$GEBV)
 ```
 
-```{r echo=TRUE, fig.height=4.5}
+```{r echo=TRUE, fig.height=4.2}
 #| code-fold: true
 ggplot(data = GEBV_bb, aes(x = Hybrid, y = GEBV))+
   geom_point(alpha = .75, colour = "#10342d", size = 2) + 

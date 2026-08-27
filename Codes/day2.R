@@ -114,21 +114,38 @@ plot_ly(
 
 # Model -------------------------------------------------------------------
 
+## Adjusting the dataset to consider missing values
+
+nrow(dat)
+grid = expand.grid(
+  gen = unique(dat$gen),
+  env = unique(dat$env),
+  stringsAsFactors = FALSE
+)
+dat = merge(grid, dat, by = c("gen", "env"), all.x = TRUE)
+nrow(dat)
+
 ## Building the covariance matrices
 dat$gen = factor(dat$gen, levels = rownames(Gmat), ordered = TRUE)
+dat = dat[order(dat$env, dat$gen),]
 ZG = model.matrix(~-1 + gen, data = dat)
-ZE = model.matrix(~-1 + env, data = dat)
-
-rownames(ZG) = rownames(ZE) = dat$gen
+rownames(ZG) = dat$gen
 colnames(ZG) = gsub("gen", "", colnames(ZG))
+ZG[1:5, 1:5]
+
+ZE = model.matrix(~-1 + env, data = dat)
+rownames(ZE) = dat$env
 colnames(ZE) = gsub("env", "", colnames(ZE))
+ZE[1:5,1:5]
 
 ZGZ = ZG %*% Gmat %*% t(ZG)
 rownames(ZGZ) -> aux1
+dim(ZGZ)
 ZEZ = tcrossprod(ZE)
-rownames(ZEZ) -> aux2
+dim(ZEZ)
 GEI = ZGZ * ZEZ
 rownames(GEI) -> aux3
+dim(GEI)
 GEI = eigen(GEI)
 rownames(GEI$vectors) = aux3
 save(GEI, file = "ETA_GEI.RDA")
