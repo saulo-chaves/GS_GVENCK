@@ -297,18 +297,20 @@ nfolds = 5
 nrept = 5 
 seed = 8  
 
-cvdata = list() 
-for (j in 1:nrept) {
-  set.seed(seed*j) 
-  cvdata[[j]] = dat[,c('gen', 'blue')]
-  cvdata[[j]]$set = NA
-  for (i in cvdata[[j]]$gen) {
-    cvdata[[j]][cvdata[[j]]$gen == i,'set'] = sample(
-      1:nfolds, 
-      size = 1
-    )
-  }
+sets = list()
+i = 1
+repeat{
+  set.seed(987 * i)
+  sets[[i]] = sample(rep(1:nfolds, length.out = nrow(dat)))
+  i = i + 1
+  if(i > nrept) break
 }
+cvdata = lapply(sets, function(x){
+  cvdata = dat
+  cvdata$set = x
+  return(cvdata)
+})
+for (i in 1:length(cvdata)) cvdata[[i]]$rept = i
 
 ## RRBLUP ====  
 cv_rr = lapply(cvdata, function(x){
@@ -331,6 +333,7 @@ cv_rr = lapply(cvdata, function(x){
 })
 
 cv_rr = lapply(cv_rr, function(x) do.call(rbind, x))
+save(cv_rr, file = "cv_rr.RDA")
 
 # Capacidade preditiva (quanto maior, melhor)
 pa_rr = lapply(cv_rr, function(x) cor(x$blue, x$yhat, use = 'complete.obs'))
@@ -347,8 +350,8 @@ cv_bb = lapply(cvdata, function(x){
     yNA[x$set == i] = NA
     
     mod_cv = BGLR(y = yNA, ETA = ETA, nIter = 8000, burnIn = 1000, 
-                  thin = 10, verbose = FALSE)
-    unlink("*.dat")
+                  thin = 10, verbose = FALSE, saveAt = "modCV")
+    unlink(list.files(pattern = "modCV"))
     
     res.list[[i]] = data.frame(gen = x$gen, yhat = mod_cv$yHat) |> 
       left_join(x, by = "gen") |> filter(set == i)

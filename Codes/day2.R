@@ -114,38 +114,21 @@ plot_ly(
 
 # Model -------------------------------------------------------------------
 
-## Adjusting the dataset to consider missing values
-
-nrow(dat)
-grid = expand.grid(
-  gen = unique(dat$gen),
-  env = unique(dat$env),
-  stringsAsFactors = FALSE
-)
-dat = merge(grid, dat, by = c("gen", "env"), all.x = TRUE)
-nrow(dat)
-
 ## Building the covariance matrices
 dat$gen = factor(dat$gen, levels = rownames(Gmat), ordered = TRUE)
-dat = dat[order(dat$env, dat$gen),]
 ZG = model.matrix(~-1 + gen, data = dat)
-rownames(ZG) = dat$gen
-colnames(ZG) = gsub("gen", "", colnames(ZG))
-ZG[1:5, 1:5]
-
 ZE = model.matrix(~-1 + env, data = dat)
-rownames(ZE) = dat$env
+
+rownames(ZG) = rownames(ZE) = dat$gen
+colnames(ZG) = gsub("gen", "", colnames(ZG))
 colnames(ZE) = gsub("env", "", colnames(ZE))
-ZE[1:5,1:5]
 
 ZGZ = ZG %*% Gmat %*% t(ZG)
 rownames(ZGZ) -> aux1
-dim(ZGZ)
 ZEZ = tcrossprod(ZE)
-dim(ZEZ)
+rownames(ZEZ) -> aux2
 GEI = ZGZ * ZEZ
 rownames(GEI) -> aux3
-dim(GEI)
 GEI = eigen(GEI)
 rownames(GEI$vectors) = aux3
 save(GEI, file = "ETA_GEI.RDA")
@@ -176,7 +159,7 @@ ETA2 = list(
 )
 
 model2 = BGLR(y = dat$blue, ETA = ETA2, nIter = 12000, burnIn = 2000, 
-             thin = 10, verbose = TRUE, saveAt = "complete_met2_")
+              thin = 10, verbose = TRUE, saveAt = "complete_met2_")
 save(model2, file = "met_gs2.RDA")
 
 
@@ -259,24 +242,27 @@ geweke.diag(varG_chain)
 
 
 # Cross-validation --------------------------------------------------------
-nfolds = 10
+nfolds = 5
 nrept = 5 
 seed = 8  
 
 # CV2 ==========
-cvdata = list()
-seed = 7
-for (rept in 1:nrept) {
-  set.seed(seed * rept)
-  cvdata[[rept]] = dat
-  cvdata[[rept]]$set = NA
-  for (id in unique(dat$gen)) {
-    cvdata[[rept]][cvdata[[rept]]$gen == id, 'set'] = sample(1:nfolds,
-                                                             size = dim(cvdata[[rept]][cvdata[[rept]]$gen == id, ])[1],
-                                                             replace = dim(cvdata[[rept]][cvdata[[rept]]$gen == id, ])[1] > nfolds)
-  }
-  cvdata[[rept]]$rept = rept
+
+sets = list()
+i = 1
+repeat{
+  set.seed(987 * i)
+  sets[[i]] = sample(rep(1:nfolds, length.out = nrow(dat)))
+  i = i + 1
+  if(i > nrept) break
 }
+cvdata = lapply(sets, function(x){
+  cvdata = dat
+  cvdata$set = x
+  return(cvdata)
+})
+for (i in 1:length(cvdata)) cvdata[[i]]$rept = i
+
 
 cv2 = lapply(cvdata, function(x){
   res.list = list()
@@ -302,22 +288,23 @@ cv2 = lapply(cvdata, function(x){
   res.list
 })
 
+cv2 = lapply(cv2, function(x) do.call(rbind, x))
 save(cv2, file = "CV2.RDA")
 
 # CV1 ==========
-set.seed(7)
-sets = split(
-  rep(
-    1:nfolds, length(unique(dat$gen)) * nrept
-  )[order(runif(length(unique(dat$gen)) * nrept))],
-  f = 1:nrept
-)
+sets = list()
+i = 1
+repeat{
+  set.seed(7 * i)
+  sets[[i]] = sample(rep(1:nfolds, length.out = nlevels(dat$gen)))
+  i = i + 1
+  if(i > nrept) break
+}
 cvdata = lapply(sets, function(x){
   cvdata = dat
-  cvdata = merge(cvdata, data.frame(
-    gen = unique(dat$gen),
-    set = x
-  ), by = 'gen')
+  aux = data.frame(gen = levels(dat$gen), set = x)
+  cvdata$set = aux$set[match(cvdata$gen, aux$gen)]
+  return(cvdata)
 })
 for (i in 1:length(cvdata)) cvdata[[i]]$rept = i
 
@@ -345,7 +332,7 @@ cv1 = lapply(cvdata, function(x){
   }
   res.list
 })
-
+cv1 = lapply(cv1, function(x) do.call(rbind, x))
 save(cv1, file = "CV1.RDA")
 
 
