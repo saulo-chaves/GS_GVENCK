@@ -31,7 +31,7 @@ format:
     show-slide-number: all
     callout-appearance: simple
     nocite: |
-      @lima_genomes_2023
+      @lima_genomes_2023, @de_los_campos_whole-genome_2013
     include-in-header: "C:/Users/saulo/OneDrive/Palestras/Misc//zoom-in-out2.html"
     # height: 800
 editor_options:

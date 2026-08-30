@@ -337,9 +337,59 @@ save(cv1, file = "CV1.RDA")
 
 
 
+load(file = "CV1.RDA")
+load(file = 'CV2.RDA')
+
+res_cv1 = lapply(cv1, function(x){
+  x |> reframe(rmspe = sqrt(mean((blue - yhat)^2, na.rm = T)),
+               pa = cor(blue, yhat),
+               .by = env)
+})
+
+res_cv1_mean = do.call(rbind, lapply(res_cv1, function(x) reframe(x, rmspe = mean(rmspe), pa = mean(pa))))
+res_cv1_mean$rept = 1:5
+res_cv1_mean$CV = "CV1"
+
+res_cv2 = lapply(cv2, function(x){
+  x |> reframe(rmspe = sqrt(mean((blue - yhat)^2, na.rm = T)),
+               pa = cor(blue, yhat),
+               .by = env)
+})
+
+res_cv2_mean = do.call(rbind, lapply(res_cv2, function(x) reframe(x, rmspe = mean(rmspe), pa = mean(pa))))
+res_cv2_mean$rept = 1:5
+res_cv2_mean$CV = "CV2"
+
+rbind(res_cv1_mean, res_cv2_mean) |> 
+  pivot_longer(rmspe:pa) |> 
+  ggplot(aes(x = CV, y = value)) +
+  facet_wrap(.~name, scales = "free_y", labeller = labeller(.cols = c("pa" = "Predictive ability", "rmspe" = "RMSPE")))+
+  geom_boxplot(fill = "#b2bc63") +
+  theme_bw() + 
+  theme(axis.title.y = element_blank(), text = element_text(size = 18))
+
+for (i in 1:length(res_cv1)){
+  res_cv1[[i]]$rept = i
+  res_cv1[[i]]$CV = "CV1"
+} 
+for (i in 1:length(res_cv2)){
+  res_cv2[[i]]$rept = i
+  res_cv2[[i]]$CV = "CV2"
+} 
 
 
-
+rbind(
+  do.call(rbind, res_cv1),
+  do.call(rbind, res_cv2)
+) |> pivot_longer(rmspe:pa) |>
+  ggplot(aes(x = env, y = value)) +
+  # facet_wrap(.~name, scales = "free_y", labeller = labeller(.cols = c("pa" = "Predictive ability", "rmspe" = "RMSPE"))) +
+  facet_grid(name~CV, scales = 'free_y',
+             labeller = labeller(.rows = c("pa" = "Predictive ability", "rmspe" = "RMSPE")))+
+  theme_bw() + 
+  theme(axis.title.y = element_blank(), text = element_text(size = 14),
+        axis.text.x = element_text(angle = 90, vjust = .5, hjust = 1)) +
+  geom_boxplot(fill = "#b2bc63")
 
 
 

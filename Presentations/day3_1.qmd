@@ -1,0 +1,350 @@
+---
+format: 
+  revealjs:
+    scrollable: false
+    theme: [simple,C:/Users/saulo/OneDrive/Palestras/Misc//theme.scss]
+    background-transition: fade
+    progress: true
+    toc: false
+    transition: fade
+    transition-speed: fast
+    tbl-cap-location: top
+    code-overflow: scroll
+    code-line-numbers: false
+    code-copy: hover
+    touch: true
+    code-fold: false
+    multiplex: false
+    chalkboard: false
+    from: markdown+emoji
+    fig-format: retina
+    fig-align: center
+    fig-cap-location: margin
+    fig-dpi: 400
+    embed-resources: true
+    lang: pt
+    auto-stretch: false
+    bibliography: C:/Users/saulo/OneDrive/Palestras/Misc//references.bib
+    csl: C:/Users/saulo/OneDrive/Palestras/Misc//apa.csl
+    slide-level: 2
+    slide-number: true
+    show-slide-number: all
+    callout-appearance: simple
+    nocite: |
+     @misztal_emerging_2021, @fernandez-gonzalez_comparison_2023, @wallace_road_2018, @hickey_genomic_2017, @werner_genomic_2023, @couto_training_2024, @voss-fels_accelerating_2019,@jarquin_genomic_2020
+    include-in-header: "C:/Users/saulo/OneDrive/Palestras/Misc//zoom-in-out2.html"
+    # height: 800
+editor_options:
+  chunk_output_type: console
+---
+
+<br>
+
+<br>
+
+<br>
+
+<br>
+
+:::: {style="font-size: 1.7em; opacity: 0.9;width: 100%;"}
+[**Updates on genomic selection**]{.titles}
+::::
+
+:::: {style="font-size: 1.2em; opacity: 0.8;width: 100%;"}
+Day 3: Genomic selection models enriched with environmental data
+::::
+
+<hr style="height: 2px; border: none; background-color: #b2bc63;">
+
+**Saulo Chaves**
+
+:::: {style="font-size: 0.70em; opacity: 0.9;width: 70%;"}
+Assistant Professor
+::::
+
+:::: {style="font-size: 0.70em; opacity: 0.7;width: 70%;"}
+Data Science for Plant Breeding Lab
+::::
+
+:::: {style="font-size: 0.70em; opacity: 0.7;width: 70%;"}
+Piracicaba, September 3^rd^
+::::
+
+
+![](C:/Users/saulo/OneDrive/Palestras/Misc/02-Esalq-Versao-completa-Ingles-Digital.png){.absolute top=20 left=0 width="350"}
+
+![](C:/Users/saulo/OneDrive/Palestras/Misc/logo_gvenck/GVENCK_Completa - Preta){.absolute top=10 left=380 width="240"}
+
+
+## Objectives {.custom1}
+
+::: {.fragment .semi-fade-out}
+-   To be introduced to the [environmic]{.green} point of view of the genotype-by-environment interaction
+:::
+
+::: {.fragment .fade-in}
+::: {.fragment .semi-fade-out}
+-   To show how environmental data can be incorporated into genomic prediction models
+:::
+:::
+
+::: {.fragment .fade-in}
+::: {.fragment .semi-fade-out}
+-   To run multi-environment models enriched with environmental data and validate them in different scenarios
+:::
+:::
+
+# Environmics {background-color="#b2bc63"}
+
+## Genotype-by-environment interaction {.custom1}
+
+```{r}
+library(tidyverse)
+g1 = c(18,20,22,24)
+g2 = g1-4
+
+dat = data.frame(
+  Valor = c(g1, g2),
+  Ambiente = rep(paste0("E",1:length(g1)),2),
+  Tratamento = rep(paste0("G", 1:2), each = 4),
+  GA = c("Plasticity, No interaction")
+)
+
+
+g1 = c(12,17,22,27)
+g2 = c(10, 13, 16, 19)
+
+dat = rbind(dat,
+            data.frame(
+              Valor = c(g1, g2),
+              Ambiente = rep(paste0("E", 1:length(g1)), 2),
+              Tratamento = rep(paste0("G", 1:2), each = 4),
+              GA = c("Non-crossover interaction")
+            ))
+
+
+g1 = rev(c(12,17,22,27))
+g2 = rev(g1)
+
+dat = rbind(dat,
+            data.frame(
+              Valor = c(g1, g2),
+              Ambiente = rep(paste0("E", 1:length(g1)), 2),
+              Tratamento = rep(paste0("G", 1:2), each = 4),
+              GA = c("Crossover interaction")
+            ))
+
+dat$GA = factor(dat$GA, levels = unique(dat$GA))
+
+dat |> ggplot(aes(x = Ambiente, y = Valor, color = Tratamento, shape = Tratamento,
+                  linetype = Tratamento)) + 
+  geom_point(size = 4) + 
+  geom_line(aes(group = Tratamento), linewidth = 1.8) +
+  facet_wrap(.~GA) +
+  theme_bw() +
+  theme(legend.position = "top", text = element_text(size = 18))  + 
+  scale_color_manual(values = c('#10342d', '#b2bc63')) + 
+  labs(x = "Environment", y = "Phenotype", color = "Genotype", shape = "Genotype", linetype = "Genotype")
+```
+
+
+## Genotype-by-environment interaction {.custom1}
+
+![](C:/Users/saulo/OneDrive/Palestras/Misc/mapas_ipef.jpg){width="70%" fig-align="center"}
+
+
+## Genotype-by-environment interaction {.custom1}
+
+**GEI from the environmental perspective**
+
+::::: columns
+::: {.column width="50%"}
+
+![](C:/Users/saulo/OneDrive/Palestras/Misc/arvore_angelica.png){width="100%" fig-align="center"}
+
+
+:::
+
+::: {.column width="50%"}
+
+```{=html}
+<div class="figure-with-source">
+  <img src="C:/Users/saulo/OneDrive/Palestras/Misc/germano.png" style="width: 60%;" />
+  <div class="figure-source">
+    <a href="https://acsess.onlinelibrary.wiley.com/doi/10.1002/csc2.21312?medium=article&utm_source=researchgate.net" target="_blank">Costa-Neto et al. (2021)</a>
+  </div>
+</div>
+```
+
+:::
+:::::
+
+## Environmics {.custom1}
+
+```{=html}
+<div class="figure-with-source">
+  <img src="C:/Users/saulo/OneDrive/Palestras/Misc/roberto.jpg" style="width: 100%;" />
+  <div class="figure-source">
+    <a href="https://acsess.onlinelibrary.wiley.com/doi/10.1002/csc2.70175?utm_medium=article&utm_source=researchgate.net" target="_blank">Fritsche-Neto et al. (2025)</a>
+  </div>
+</div>
+```
+
+
+## Environmics {.custom1}
+
+```{=html}
+<div class="figure-with-source">
+  <img src="https://media.springernature.com/full/springer-static/image/art%3A10.1007%2Fs00122-020-03684-z/MediaObjects/122_2020_3684_Fig1_HTML.png?as=webp" style="width: 60%;" />
+  <div class="figure-source">
+    <a href="https://link.springer.com/article/10.1007/s00122-020-03684-z" target="_blank">Resende et al. (2021)</a>
+  </div>
+</div>
+```
+
+## Environmental covariate {.custom1}
+
+```{=html}
+<div class="figure-with-source">
+  <img src="https://media.springernature.com/full/springer-static/image/art%3A10.1007%2Fs00122-016-2691-5/MediaObjects/122_2016_2691_Fig1_HTML.gif?as=webp" style="width: 80%;" />
+  <div class="figure-source">
+    <a href="https://link.springer.com/article/10.1007/s00122-016-2691-5" target="_blank">Xu (2016)</a>
+  </div>
+</div>
+```
+
+## Environmic marker {.custom1}
+
+> An index vector derived from environmental (or envirotypic) covariates (ECs) which reflects the potential expression of a phenotype in a given space and time
+> --- @marcatti_enviromic_2026
+
+
+```{=html}
+<div class="figure-with-source">
+  <img src="C:/Users/saulo/OneDrive/Palestras/Misc/soybean.png" style="width: 80%;" />
+  <div class="figure-source">
+    <a href="" target="_blank">Maurício Araújo</a>
+  </div>
+</div>
+```
+
+
+## Environmic marker {.custom1}
+
+```{=html}
+<div class="figure-with-source">
+  <img src="C:/Users/saulo/OneDrive/Palestras/Misc/tassi.png" style="width: 80%;" />
+  <div class="figure-source">
+    <a href="" target="_blank">Marcatti & Resende (2026)</a>
+  </div>
+</div>
+```
+
+## Environmic marker {.custom1}
+
+::: {.callout-note}
+
+Extracted from [@marcatti_enviromic_2026]:
+
+:::: incremental
+
+-   [Linearity]{.blue}: The enviromic marker should have a linear relationship with the phenotype, analogous to treating SNPs in linear reaction models
+-   [Site potential]{.blue}: A site with a high value for a given enviromic marker (a high envirotype) tends to offer greater potential for expressing the trait
+-   [Response heterogeneity]{.blue}: A site favourable for one genotype or group is not necessarily favourable for all
+-   [EC-genotype dependence]{.blue}: An EC influential for one genotype may be influential for others, indicating that envirotypic polymorphism does not imply uniformity of genetic response.
+
+::::
+
+:::
+
+## Environmic marker {.custom1}
+
+::::: columns
+::: {.column width="50%"}
+
+::: incremental
+
+-   Most data is **freely available**
+-   National public databases
+    -   INMET
+-   International public databases 
+    -   Ex: NASA, SoilGrids, WorldClim, etc.
+-   Data collected *in loco*
+-   [Historical series]{.green}
+-   Climate projections
+    -   Ex: IPCC
+
+:::
+
+
+:::
+
+::: {.column width="50%"}
+
+```{=html}
+<div class="figure-with-source">
+  <img src="C:/Users/saulo/OneDrive/Palestras/Misc/envrtype.png" style="width: 80%;" />
+  <div class="figure-source">
+    <a href="https://github.com/allogamous/EnvRtype" target="_blank">Germano Costa-Neto</a>
+  </div>
+</div>
+```
+
+:::
+:::::
+
+
+## Environmic marker {.custom1}
+
+**Quality control**
+
+
+```{=html}
+<div class="figure-with-source">
+  <img src="C:/Users/saulo/OneDrive/Palestras/Misc/xu.jpg" style="width: 80%;" />
+  <div class="figure-source">
+    <a href="https://www.cell.com/molecular-plant/fulltext/S1674-2052(22)00295-7" target="_blank">Xu et al. (2022)</a>
+  </div>
+</div>
+```
+
+
+
+## Environmics {.custom1}
+
+```{=html}
+<div class="figure-with-source">
+  <img src="https://media.springernature.com/full/springer-static/image/art%3A10.1007%2Fs00122-016-2691-5/MediaObjects/122_2016_2691_Fig4_HTML.gif?as=webp" style="width: 100%;" />
+  <div class="figure-source">
+    <a href="https://link.springer.com/article/10.1007/s00122-016-2691-5" target="_blank">Xu (2016)</a>
+  </div>
+</div>
+```
+
+## Environmics {.custom1}
+
+**Plant breeding triangle**
+
+```{=html}
+<div class="figure-with-source">
+  <img src="https://media.springernature.com/full/springer-static/image/art%3A10.1038%2Fs41467-026-73097-x/MediaObjects/41467_2026_73097_Fig1_HTML.png?as=webp" style="width: 100%;" />
+  <div class="figure-source">
+    <a href="https://www.nature.com/articles/s41467-026-73097-x" target="_blank">Xu (2026)</a>
+  </div>
+</div>
+```
+
+## Environmics in plant breeding {.custom1}
+
+**
+
+
+
+
+
+
+
+## References {.custom1 .smaller .scrollable}
+
+::: {#refs}
+:::
