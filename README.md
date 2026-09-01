@@ -4,6 +4,7 @@ Seja bem-vindo(a)!
 
 Este repositório contém o material referente ao curso "Atualizações em Seleção Genômica", ministrado por mim e organizado pelo GVENCK. O repositório possui a seguinte estrutura:
 
+```
 GS_GVENCK/
 ├── Data/
 │   ├── G2F.RDS                         # Médias ajustadas de 211 experimentos instalados no contexto do projeto "Genomes to Fields"
@@ -20,8 +21,11 @@ GS_GVENCK/
 ├── LICENSE                             # Licença de uso
 ├── SG_GVENCK.Rproj                     # Arquivo do projeto R
 └── .gitignore                          # Arquivos excluídos do controle de versão
+```
 
 Para dúvidas ou sugestões, contactar:
-saulochaves@usp.br
-gvenck@usp.br
+
+*saulochaves@usp.br*
+
+*gvenck@usp.br*
 
