@@ -1,0 +1,757 @@
+---
+format: 
+  revealjs:
+    scrollable: false
+    theme: [simple,C:/Users/saulo/OneDrive/Palestras/Misc//theme.scss]
+    background-transition: fade
+    progress: true
+    toc: false
+    transition: fade
+    transition-speed: fast
+    tbl-cap-location: top
+    code-overflow: scroll
+    code-line-numbers: false
+    code-copy: hover
+    touch: true
+    code-fold: false
+    code-summary: "Show code"
+    multiplex: false
+    chalkboard: false
+    from: markdown+emoji
+    fig-format: retina
+    fig-align: center
+    fig-cap-location: margin
+    fig-dpi: 400
+    embed-resources: true
+    lang: pt
+    auto-stretch: false
+    bibliography: C:/Users/saulo/OneDrive/Palestras/Misc//references.bib
+    csl: C:/Users/saulo/OneDrive/Palestras/Misc//apa.csl
+    slide-level: 2
+    slide-number: true
+    show-slide-number: all
+    callout-appearance: simple
+    nocite: |
+      @lima_genomes_2023, @de_los_campos_whole-genome_2013
+    include-in-header: "C:/Users/saulo/OneDrive/Palestras/Misc//zoom-in-out2.html"
+    # height: 800
+editor_options:
+  chunk_output_type: console
+---
+
+
+<br>
+
+<br>
+
+<br>
+
+<br>
+
+:::: {style="font-size: 1.7em; opacity: 0.9;width: 100%;"}
+[**Updates on genomic selection**]{.titles}
+::::
+
+:::: {style="font-size: 1.2em; opacity: 0.8;width: 100%;"}
+Day 1: Fundamentals of genomic selection
+::::
+
+<hr style="height: 2px; border: none; background-color: #b2bc63;">
+
+[<span style="color: #10342d !important; opacity: 0.94 !important;">**Saulo Chaves**</span>](https://saulo-chaves.github.io/)
+
+:::: {style="font-size: 0.70em; opacity: 0.9;width: 70%;"}
+[<span style="color: #10342d !important; opacity: 0.9 !important;">Assistant Professor </span>](https://www.genetica.esalq.usp.br/)
+::::
+
+:::: {style="font-size: 0.70em; opacity: 0.7;width: 70%;"}
+Data Science for Plant Breeding Lab
+::::
+
+:::: {style="font-size: 0.70em; opacity: 0.7;width: 70%;"}
+Piracicaba, September 1^st^
+::::
+
+
+![](C:/Users/saulo/OneDrive/Palestras/Misc/02-Esalq-Versao-completa-Ingles-Digital.png){.absolute top=20 left=0 width="350"}
+
+![](C:/Users/saulo/OneDrive/Palestras/Misc/logo_gvenck/GVENCK_Completa - Preta){.absolute top=10 left=380 width="240"}
+
+# Practical session {background-color="#b2bc63"}
+
+## The dataset {.custom1}
+
+```{=html}
+<div class="figure-with-source">
+  <img src="https://www.genomes2fields.org/images/logos/2026-Collaborators-Map.5000x3960.png" style="width: 70%;" />
+  <div class="figure-source">
+    <a href="https://www.genomes2fields.org/home/" target="_blank">G2F</a>
+  </div>
+</div>
+```
+
+
+## {background-iframe="https://www.genomes2fields.org/resources/" loading="lazy" style="width: 100%; height: 600px; border: 0px none;" allow="web-share; clipboard-write"}
+
+## Phenotypic data {.custom1}
+
+```{r echo=TRUE}
+library(tidyverse)
+
+dat = readRDS("../Data/G2F.RDS")
+str(dat)
+```
+
+## Phenotypic data {.custom1}
+
+```{r echo=TRUE}
+#| code-fold: true
+ggplot(data = as.data.frame(table(dat$gen, dat$env)),
+       aes(x = Var2, y = Var1, fill = as.factor(Freq))) + 
+  geom_tile(aes(alpha = as.factor(Freq))) + 
+  theme_minimal() + 
+  theme(axis.text = element_blank(), legend.title = element_blank(), 
+        legend.position = 'top') +
+  scale_fill_manual(values = c('#b2bc63','#10342d'), labels = c("Abscent", "Present")) +
+  scale_alpha_manual(values = c(.6, 1), labels = c("Abscent", "Present")) + 
+  labs(x = "Environment (Year-Location combination)", y = "Hybrid")
+```
+
+## Phenotypic data {.custom1}
+
+```{r echo=TRUE}
+dat = dat[which(dat$env == "WIH3_2023"),]
+str(dat)
+```
+
+## Genomic data {.custom1}
+
+Package `vcfR` [@vcfr]
+
+```{r echo=TRUE}
+library(vcfR)
+vcf = read.vcfR(file = "../Data/markers.vcf")
+```
+
+## Genomic data {.custom1}
+
+```{r echo=TRUE}
+geno = extract.gt(x = vcf)
+geno = geno[-grep(',', vcf@fix[,'ALT']),] # Remove multi-allelic mrks
+vcf@fix = vcf@fix[-grep(',',vcf@fix[,'ALT']),]
+geno = gsub('/', "", geno)
+geno[1:5,1:5]
+```
+
+## Genomic data {.custom1}
+
+```{r echo=TRUE}
+# Binding reference and alternative allele to marker matrix
+geno = cbind(geno, vcf@fix[,c('REF', 'ALT')]) 
+geno = apply(geno, 1, function(x){
+  y = gsub('0', x['REF'], x)
+  z = gsub('1', y['ALT'], y)
+  z
+})
+geno[1:5,1:5]
+```
+
+## Genomic data {.custom1}
+
+```{r echo=TRUE}
+geno = geno[-which(rownames(geno) %in% c('REF', 'ALT')), ]
+geno[grep('CA', geno)] = 'AC'
+geno[grep('GA', geno)] = 'AG'
+geno[grep('TA', geno)] = 'AT'
+geno[grep('GC', geno)] = 'CG'
+geno[grep('TC', geno)] = 'CT'
+geno[grep('TG', geno)] = 'GT'
+geno[1:5,1:5]
+```
+
+## Genomic data {.custom1}
+
+**Filtering step**
+
+```{r echo=TRUE}
+Freqsnps = apply(geno, 2, table)
+Freqsnps = do.call(rbind, lapply(Freqsnps, data.frame)) |> 
+  rownames_to_column("mrk") |> mutate(mrk = gsub('\\..*', '', mrk))
+head(Freqsnps)
+```
+
+## Genomic data {.custom1}
+
+**Filtering step**
+
+```{r echo=TRUE}
+Freqall = apply(geno, 2, function(x){
+  aux = as.data.frame(table(do.call(c, strsplit(x = x, split = ''))))
+  return(aux)
+})
+Freqall = do.call(rbind, Freqall) |> 
+  rownames_to_column("mrk") |> mutate(mrk = gsub('\\..*', '', mrk))
+head(Freqall)
+Freqmis = apply(geno, 2, function(x) mean(is.na(x)))
+head(Freqmis)
+```
+
+## Genomic data {.custom1}
+
+Removing markers with $\geq$ 5% of missing data
+
+```{r echo=TRUE}
+geno = geno[,-which(Freqmis >= 0.05)]  
+vcf@fix = vcf@fix[-which(Freqmis >= 0.05),]  
+dim(geno)
+any(is.na(geno))
+```
+
+. . .
+
+[Impute missing data with the mode]{.red}
+
+```{r echo=TRUE}
+for (i in colnames(geno)) {
+  if(!any(is.na(geno[,i]))) next else{
+    geno[which(is.na(geno[,i])),i] = as.character(
+      Freqsnps[which(Freqsnps$mrk == i), ][which.max(Freqsnps[which(Freqsnps$mrk == i), ][,'Freq']), "Var1"]
+      )
+  }
+  rm(i)
+}
+any(is.na(geno))
+```
+
+## Genomic data {.custom1}
+
+Removing markers with MAF $\leq$ 5%
+
+```{r echo=TRUE}
+Freqall$Fper = Freqall$Freq / (nrow(geno) * 2)
+geno = geno[,-which(Freqall$Fper <= 0.05)]
+dim(geno)
+```
+
+```{r echo=FALSE, fig.height=4.5}
+# Genotypic and allele frequencies after filtering
+Freqsnps = apply(geno, 2, table)
+Freqsnps = do.call(rbind, lapply(Freqsnps, data.frame)) |> 
+  rownames_to_column("mrk") |> mutate(mrk = gsub('\\..*', '', mrk))
+
+Freqall = apply(geno, 2, function(x){
+  aux = as.data.frame(table(do.call(c, strsplit(x = x, split = ''))))
+  return(aux)
+})
+Freqall = do.call(rbind, Freqall) |> 
+  rownames_to_column("mrk") |> mutate(mrk = gsub('\\..*', '', mrk))
+
+ggpubr::ggarrange(
+  data.frame(Freq = tapply(Freqsnps$Freq, Freqsnps$Var1, sum)/sum(Freqsnps$Freq)) |> 
+    rownames_to_column("Genotype") |> ggplot(aes(x = Genotype, y = Freq)) + 
+    geom_bar(stat = 'identity', fill = '#b2bc63', color = 'black') +
+    theme_bw() + theme(text = element_text(size = 18)) +
+    scale_y_continuous(labels = scales::percent) + 
+    labs(x = 'Genotype', y = 'Frequency'),
+  
+  data.frame(Freq = tapply(Freqall$Freq, Freqall$Var1, sum)/sum(Freqall$Freq)) |> 
+    rownames_to_column("Alleles") |> ggplot(aes(x = Alleles, y = Freq)) + 
+    geom_bar(stat = 'identity', fill = '#b2bc63', color = 'black') +
+    theme_bw()  + theme(text = element_text(size = 18)) +
+    scale_y_continuous(labels = scales::percent) + 
+    labs(x = 'Alleles', y = 'Frequency')
+)
+```
+
+## Genomic data {.custom1}
+
+**Re-codification according to the dosage of the reference allele**
+
+```{r echo=TRUE}
+geno.code = matrix(
+  nrow = nrow(geno),
+  ncol = ncol(geno),
+  dimnames = list(rownames(geno), colnames(geno))
+)
+for (i in colnames(geno)) {
+  x = geno[, i]
+  geno.code[, i] = nchar(gsub(paste0("[^", vcf@fix[which(vcf@fix[, "ID"] == i),
+                                                   'REF'], "]"), "", x))
+}
+geno.code[1:5,1:5]
+# saveRDS(geno.code, file = "Data/mrk_filtered.RDS")
+```
+
+## Genomic data {.custom1 visibility="hidden"}
+
+**Principal component plot**
+
+```{r echo=TRUE, eval=FALSE}
+#| code-fold: true
+pca = prcomp(geno.code) 
+pc.df = rbind(
+  as.data.frame(pca$rotation) |> 
+    rownames_to_column("ID") |> 
+    mutate(comp = "load"),
+  as.data.frame(pca$x) |> 
+    mutate(ID = paste0("ind", 1:nrow(pca$x)),
+           comp = "score")
+)
+ggplot(dat = subset(pc.df, subset = comp == 'score'), aes(x = PC1, y = PC2)) + 
+  geom_point(size = 3, alpha = .5, colour = "#b2bc63") +
+  geom_vline(xintercept = 0, linetype = "dashed") + 
+  geom_hline(yintercept = 0, linetype = 'dashed') +
+  scale_x_continuous(limits = range(pca$x[,1:2])) +
+  scale_y_continuous(limits = range(pca$x[,1:2])) +
+  coord_fixed() + 
+  theme_minimal() + 
+  theme(text= element_text(size = 18)) + 
+  labs(x = paste0("PC1 (", round(pca$sdev[1]^2/sum(pca$sdev^2)*100,2), "%)"),
+       y= paste0("PC2 (", round(pca$sdev[2]^2/sum(pca$sdev^2)*100,2), "%)"))
+
+```
+
+## Ridge Regression {.custom1}
+
+$$
+\boldsymbol y = \boldsymbol 1 \mu + \boldsymbol W \boldsymbol u + \boldsymbol \varepsilon
+$$
+
+-   $\boldsymbol W \to$ matrix of markers recoded to numeric scale
+-   $\boldsymbol u \to$ vector of marker effects 
+
+. . .
+
+::: {.callout-note style="font-size: 1.3em;"}
+RR-BLUP assumes that all markers effects are normally distributed and have identical variance:
+
+$$
+\boldsymbol u \sim \mathcal N \left(\boldsymbol 0, \sigma^2_u \boldsymbol I \right)
+$$
+
+:::
+
+## Ridge Regression {.custom1}
+
+$$
+\boldsymbol u \sim \mathcal N \left(\boldsymbol 0, \sigma^2_u \boldsymbol I \right)
+$$
+
+```{r echo=FALSE}
+ggplot() +
+  stat_function(fun = function(x) dnorm(x, 0, 1), colour = '#b2bc63', 
+                linewidth = 1.5) +
+  theme_bw() + 
+  xlim(-4,4) +
+  theme_minimal()+
+  theme(text = element_text(size = 18))
+```
+
+## Ridge Regression {.custom1}
+
+Solution via mixed model equation
+
+$$
+\begin{bmatrix}
+\boldsymbol{1}^\prime \boldsymbol 1 & \boldsymbol 1^\prime \boldsymbol W \\
+\boldsymbol W^\prime \boldsymbol 1 & \left(\boldsymbol W^\prime \boldsymbol W + \lambda \boldsymbol{I} \right)
+\end{bmatrix} \begin{bmatrix}
+\boldsymbol \mu \\
+\boldsymbol u
+\end{bmatrix} =
+\begin{bmatrix}
+\boldsymbol 1^\prime \boldsymbol y \\
+\boldsymbol W^\prime \boldsymbol y
+\end{bmatrix}
+$$
+
+. . .
+
+**Shrinkage factor**: Shrinks the marker effects towards zero
+
+$$
+\lambda = \frac{\sigma^2_\varepsilon}{\sigma^2_u}
+$$
+
+## Ridge Regression {.custom1}
+
+**Assure compatibility between phenotypic and genomic data**
+
+```{r echo=TRUE}
+all(dat$gen %in% rownames(geno.code))
+which(!dat$gen %in% rownames(geno.code))
+dat = dat[which(dat$gen %in% rownames(geno.code)),]
+all(dat$gen %in% rownames(geno.code))
+```
+
+## Ridge Regression {.custom1 .scrollable}
+
+**Assure compatibility between genomic and phenotypic data**
+
+```{r echo=TRUE}
+all(rownames(geno.code) %in% dat$gen)
+which(!rownames(geno.code) %in% dat$gen)
+geno.code = geno.code[which(rownames(geno.code) %in% dat$gen),]
+all(rownames(geno.code) %in% dat$gen)
+```
+
+Don't forget to check the order of both datasets
+
+```{r echo=TRUE}
+all(rownames(geno.code) == dat$gen)
+```
+
+
+## Ridge Regression {.custom1}
+
+Package `rrBLUP` [@endelman_ridge]
+
+```{r echo=TRUE}
+library(rrBLUP)
+geno_rr = geno.code - 1  # Recoding the marker matrix
+geno_rr[1:5,1:5]
+
+mod = mixed.solve(y = dat$blue, Z = geno_rr) 
+```
+
+## Ridge Regression {.custom1}
+
+```{r echo=TRUE}
+blup_rr = mod$u 
+```
+
+```{r echo=TRUE}
+#| code-fold: true
+data.frame(blup_rr) |>  
+  rownames_to_column(var = "Marker") |>  
+  rename(BLUP = 'blup_rr') |>  
+  ggplot(aes(x = Marker, y = BLUP))+
+  geom_point(alpha = .6, colour = "#10342d", size = 2)+
+  theme_minimal() +
+  theme(axis.text.x = element_blank(),
+        axis.ticks.x=element_blank(), 
+        text = element_text(size = 18))
+```
+
+## Ridge Regression {.custom1}
+
+$$
+\hat{\boldsymbol g} = \boldsymbol W \hat{\boldsymbol u}
+$$
+
+```{r echo=TRUE}
+GEBV = geno_rr %*% blup_rr
+```
+
+```{r echo=TRUE}
+#| code-fold: true
+#| fig-height: 3.8
+as.data.frame(GEBV) |> rownames_to_column(var = "gen") |> 
+  rename(GEBV = V1) |> 
+  ggplot(aes(x = gen, y = GEBV))+
+  geom_point(alpha = .75, colour = "#10342d", size = 2) + 
+  theme_minimal() +
+  theme(axis.text.x = element_blank(), axis.ticks.x=element_blank(),
+        text = element_text(size = 18))+
+  labs(x = "Hybrid", y = "GEBV")
+```
+
+## Ridge Regression {.custom1}
+
+**Model parameters**
+
+$$
+\hat{\sigma}^2_g = \sigma^2_u \times t
+$$
+
+```{r echo=TRUE}
+Vg = mod$Vu * ncol(geno_rr); Vg
+```
+
+
+```{r echo=TRUE}
+Ve = mod$Ve; Ve
+mu = mod$beta; mu
+geno_her = Vg/(Vg + Ve); geno_her
+cor(dat$blue, GEBV, use = "complete.obs")
+```
+
+## BayesB {.custom1}
+
+$$
+\boldsymbol y = \boldsymbol 1 \mu + \boldsymbol W \boldsymbol u + \boldsymbol \varepsilon
+$$
+
+-   $\boldsymbol W \to$ matrix of markers recoded to numeric scale
+-   $\boldsymbol u \to$ vector of marker effects 
+
+. . .
+
+::: {.callout-note style="font-size: 1.3em;"}
+BayesB assumes that some markers are unimportant for the trait variation, hence have no effect. Furthermore, it relaxes the assumption that all markers have the same variance: 
+
+$$
+u_i \sim \mathcal N \left( 0, \sigma^2_{u_i} \right)
+$$
+
+:::
+
+## BayesB {.custom1}
+
+-   Prior for the variances: scaled inverse $\chi^2 \left[\sigma^2_{u_i} \sim \chi^{-2}\left(\nu\right)\right]$
+
+. . .
+
+-   Prior for the importance parameter (say, $I$): $I \sim \operatorname{Bernoulli}(\Pi)$
+
+. . .
+
+$$
+\hat{g}_i = I_1 \times w_{1i} \times \hat u_1 + I_2 \times w_{2i} \times \hat u_2 + \dots + I_t \times w_{ti}  \times \hat u_t
+$$
+
+-   $I_j \to 1 \mbox{ or } 0$
+
+## BayesB {.custom1}
+
+Package `BGLR` [@perez_genome-wide_2014]
+
+```{r echo=TRUE, eval=FALSE}
+library(BGLR)
+X_centred = scale(geno.code, center = TRUE, scale = FALSE)
+ETA = list(list(X = X_centred, model = "BayesB")) ## This will determine the model
+BayesB = BGLR(y = dat$blue, ETA = ETA, nIter = 80000, burnIn = 20000, 
+              thin = 10, verbose = FALSE, saveAt = "complete_")
+```
+
+```{r echo=FALSE, eval=TRUE}
+X_centred = scale(geno.code, center = TRUE, scale = FALSE)
+ETA = list(list(X = X_centred, model = "BayesB")) ## This will determine the model
+load(file = "../bayesbmod.RData")
+```
+
+. . .
+
+::::: columns
+::: {.column width="45%"}
+
+::: {.callout-caution style="font-size: 1.3em;"}
+In [Bayesian models](https://github.com/storopoli/Estatistica-Bayesiana), you should mind the number of iterations, the burn-in phase and the thinning. The more, the better, but it will take longer for your model to run.
+:::
+
+
+
+:::
+
+::: {.column width="55%"}
+
+```{=html}
+<div class="figure-with-source">
+  <img src="C:/Users/saulo/OneDrive/Palestras/Misc/gibbs.gif" style="width: 75%;" />
+  <div class="figure-source">
+    <a href="https://storopoli.github.io/Estatistica-Bayesiana/5-MCMC.html" target="_blank">Prof. Jose Storopoli</a>
+  </div>
+</div>
+```
+
+:::
+:::::
+
+
+## BayesB {.custom1}
+
+**Convergence check through model diagnostics**: Package `coda` [@coda]
+
+```{r echo=TRUE, fig.height=4}
+library(coda)
+varE = read.table("../complete_varE.dat")[,1]
+varE_chain = mcmc(varE[2001:length(varE)]) # burnIn/thin + 1
+plot(varE_chain)
+```
+
+## BayesB {.custom1}
+
+**Effective sample size**: The number of independent samples from posterior distributions. The higher, the better. If low, increase `nIter` or `thin`
+
+```{r echo=TRUE}
+effectiveSize(varE_chain)
+```
+
+. . .
+
+**Geweke convergence test**: evaluates if the MCMC chain reached a stationary state. It should be between -1.96 and 1.96. If not, increase `burnIn`
+
+```{r echo=TRUE}
+geweke.diag(varE_chain)
+```
+
+## BayesB {.custom1}
+
+```{r echo=TRUE}
+GEBV_bb = data.frame(Hybrid = dat$gen, GEBV = BayesB$yHat)
+cor(GEBV, GEBV_bb$GEBV)
+```
+
+```{r echo=TRUE, fig.height=4.2}
+#| code-fold: true
+ggplot(data = GEBV_bb, aes(x = Hybrid, y = GEBV))+
+  geom_point(alpha = .75, colour = "#10342d", size = 2) + 
+  theme_minimal() +
+  theme(axis.text.x = element_blank(), axis.ticks.x=element_blank(),
+        text = element_text(size = 18))+
+  labs(x = "Hybrid", y = "GEBV")
+```
+
+## BayesB {.custom1 .scrollable}
+
+**Model parameters**
+
+```{r echo=TRUE}
+BayesB$ETA[[1]]$b  # mrk effects
+BayesB$ETA[[1]]$d # Probability of inclusion: Frequency that the SNP had effect different than 0
+BayesB$varE # Residual variance
+var(BayesB$yHat)  # Genetic variance
+```
+
+## BayesB {.custom1}
+
+```{r echo=TRUE}
+#| code-fold: true
+df_bayesB = data.frame(
+  Marker = colnames(X_centred),
+  Effect = BayesB$ETA[[1]]$b, 
+  PPI = BayesB$ETA[[1]]$d
+)
+
+ggplot(df_bayesB, aes(x = 1:nrow(df_bayesB), y = PPI)) +
+  geom_point(aes(color = PPI > 0.5), alpha = 0.75, size = 1.7) +
+  scale_color_manual(values = c("grey", "#10342d")) +
+  labs(x = "Markers", y = "Posterior probability of inclusion") +
+  theme_minimal() + 
+  theme(legend.position = 'top', text = element_text(size = 18))
+```
+
+
+## Cross-validation {.custom1}
+
+**Define cross-validation parameters**
+
+```{r echo=TRUE}
+nfolds = 5
+nrept = 5 
+seed = 8  
+
+sets = list()
+i = 1
+repeat{
+  set.seed(987 * i)
+  sets[[i]] = sample(rep(1:nfolds, length.out = nrow(dat)))
+  i = i + 1
+  if(i > nrept) break
+}
+cvdata = lapply(sets, function(x){
+  cvdata = dat
+  cvdata$set = x
+  return(cvdata)
+})
+for (i in 1:length(cvdata)) cvdata[[i]]$rept = i
+
+```
+
+## Cross-validation {.custom1}
+
+Run RRBLUP in cross-validation
+
+```{r echo=TRUE}
+cv_rr = lapply(cvdata, function(x){
+  res.list = list()
+  for (i in unique(x$set)) {
+    
+    yNA = x$blue
+    yNA[x$set == i] = NA
+    
+    mod_cv = mixed.solve(y = yNA, Z = geno_rr)
+    
+    pred = c(mod_cv$beta) + (geno_rr %*% mod_cv$u)
+    
+    res.list[[i]] = cbind(
+      x[x$set == i,],
+      yhat = pred[x$set == i,]
+    )
+  }
+  res.list
+})
+cv_rr = lapply(cv_rr, function(x) do.call(rbind, x))
+```
+
+## Cross-validation {.custom1}
+
+Run BayesB in cross-validation
+
+```{r echo=TRUE, eval=FALSE}
+cv_bb = lapply(cvdata, function(x){
+  res.list = list()
+  for (i in unique(x$set)) {
+    
+    yNA = x$blue
+    yNA[x$set == i] = NA
+    
+    mod_cv = BGLR(y = yNA, ETA = ETA, nIter = 8000, burnIn = 1000, 
+                  thin = 10, verbose = FALSE, saveAt = "modCV")
+    unlink(list.files(pattern = "modCV"))
+    
+    res.list[[i]] = data.frame(gen = x$gen, yhat = mod_cv$yHat) |> 
+      left_join(x, by = "gen") |> filter(set == i)
+  }
+  res.list
+})
+cv_bb = lapply(cv_bb, function(x) do.call(rbind, x))
+```
+
+
+```{r echo=FALSE}
+load(file = "../cv_bb.RDA")
+```
+
+## Cross-validation {.custom1}
+
+Model evaluation
+
+```{r echo=TRUE}
+pa_rr = lapply(cv_rr, function(x) cor(x$blue, x$yhat, use = 'complete.obs'))
+mspe_rr = lapply(cv_rr, function(x) sqrt(mean((x$blue - x$yhat)^2, na.rm = T)))
+
+pa_bb = lapply(cv_bb, function(x) cor(x$blue, x$yhat, use = 'complete.obs'))
+mspe_bb = lapply(cv_bb, function(x) sqrt(mean((x$blue - x$yhat)^2, na.rm = T)))
+```
+
+
+## Cross-validation {.custom1}
+
+Model evaluation
+
+```{r echo=TRUE}
+#| code-fold: true
+#| fig-height: 4.8
+
+aux = data.frame(
+  model = rep(c("RRBLUP", "BayesB"), each = nfolds*2),
+  value = c(do.call(c, pa_rr), do.call(c, mspe_rr),
+            do.call(c, pa_bb), do.call(c, mspe_bb)),
+  param = c(rep(c("PA", "RMSPE"), each = 5), rep(c("PA", "RMSPE"), each = 5))
+)
+
+ggplot(data = aux, aes(x = model, y = value)) + 
+  facet_wrap(~param, scales = "free_y") + 
+  geom_boxplot(fill = "#b2bc63") + 
+  theme_bw() +
+  theme(text = element_text(size = 18))+
+  labs(x = "Model") +
+  theme(axis.title.y = element_blank())
+```
+
+## References {.custom1 .smaller .scrollable}
+
+::: {#refs}
+:::
+
