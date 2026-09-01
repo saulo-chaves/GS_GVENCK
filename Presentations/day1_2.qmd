@@ -14,6 +14,7 @@ format:
     code-copy: hover
     touch: true
     code-fold: false
+    code-summary: "Show code"
     multiplex: false
     chalkboard: false
     from: markdown+emoji
@@ -57,10 +58,10 @@ Day 1: Fundamentals of genomic selection
 
 <hr style="height: 2px; border: none; background-color: #b2bc63;">
 
-**Saulo Chaves**
+[<span style="color: #10342d !important; opacity: 0.94 !important;">**Saulo Chaves**</span>](https://saulo-chaves.github.io/)
 
 :::: {style="font-size: 0.70em; opacity: 0.9;width: 70%;"}
-Assistant Professor
+[<span style="color: #10342d !important; opacity: 0.9 !important;">Assistant Professor </span>](https://www.genetica.esalq.usp.br/)
 ::::
 
 :::: {style="font-size: 0.70em; opacity: 0.7;width: 70%;"}
@@ -444,7 +445,7 @@ GEBV = geno_rr %*% blup_rr
 
 ```{r echo=TRUE}
 #| code-fold: true
-#| fig-height: 4.5
+#| fig-height: 3.8
 as.data.frame(GEBV) |> rownames_to_column(var = "gen") |> 
   rename(GEBV = V1) |> 
   ggplot(aes(x = gen, y = GEBV))+
@@ -509,16 +510,17 @@ $$
 \hat{g}_i = I_1 \times w_{1i} \times \hat u_1 + I_2 \times w_{2i} \times \hat u_2 + \dots + I_t \times w_{ti}  \times \hat u_t
 $$
 
--   $I_j \to$ 1 or 0
+-   $I_j \to 1 \mbox{ or } 0$
 
 ## BayesB {.custom1}
 
 Package `BGLR` [@perez_genome-wide_2014]
 
 ```{r echo=TRUE, eval=FALSE}
+library(BGLR)
 X_centred = scale(geno.code, center = TRUE, scale = FALSE)
 ETA = list(list(X = X_centred, model = "BayesB")) ## This will determine the model
-BayesB = BGLR(y = dat$blue, ETA = ETA, nIter = 70000, burnIn = 20000, 
+BayesB = BGLR(y = dat$blue, ETA = ETA, nIter = 80000, burnIn = 20000, 
               thin = 10, verbose = FALSE, saveAt = "complete_")
 ```
 
@@ -533,7 +535,7 @@ load(file = "../bayesbmod.RData")
 ::::: columns
 ::: {.column width="45%"}
 
-::: {.callout-caution style="font-size: 1.2em;"}
+::: {.callout-caution style="font-size: 1.3em;"}
 In [Bayesian models](https://github.com/storopoli/Estatistica-Bayesiana), you should mind the number of iterations, the burn-in phase and the thinning. The more, the better, but it will take longer for your model to run.
 :::
 
@@ -545,7 +547,7 @@ In [Bayesian models](https://github.com/storopoli/Estatistica-Bayesiana), you sh
 
 ```{=html}
 <div class="figure-with-source">
-  <img src="C:/Users/saulo/OneDrive/Palestras/Misc/gibbs.gif" style="width: 80%;" />
+  <img src="C:/Users/saulo/OneDrive/Palestras/Misc/gibbs.gif" style="width: 75%;" />
   <div class="figure-source">
     <a href="https://storopoli.github.io/Estatistica-Bayesiana/5-MCMC.html" target="_blank">Prof. Jose Storopoli</a>
   </div>
@@ -639,18 +641,21 @@ nfolds = 5
 nrept = 5 
 seed = 8  
 
-cvdata = list() 
-for (j in 1:nrept) {
-  set.seed(seed*j) 
-  cvdata[[j]] = dat[,c('gen', 'blue')]
-  cvdata[[j]]$set = NA
-  for (i in cvdata[[j]]$gen) {
-    cvdata[[j]][cvdata[[j]]$gen == i,'set'] = sample(
-      1:nfolds, 
-      size = 1
-    )
-  }
+sets = list()
+i = 1
+repeat{
+  set.seed(987 * i)
+  sets[[i]] = sample(rep(1:nfolds, length.out = nrow(dat)))
+  i = i + 1
+  if(i > nrept) break
 }
+cvdata = lapply(sets, function(x){
+  cvdata = dat
+  cvdata$set = x
+  return(cvdata)
+})
+for (i in 1:length(cvdata)) cvdata[[i]]$rept = i
+
 ```
 
 ## Cross-validation {.custom1}
@@ -692,8 +697,8 @@ cv_bb = lapply(cvdata, function(x){
     yNA[x$set == i] = NA
     
     mod_cv = BGLR(y = yNA, ETA = ETA, nIter = 8000, burnIn = 1000, 
-                  thin = 10, verbose = FALSE)
-    unlink("*.dat")
+                  thin = 10, verbose = FALSE, saveAt = "modCV")
+    unlink(list.files(pattern = "modCV"))
     
     res.list[[i]] = data.frame(gen = x$gen, yhat = mod_cv$yHat) |> 
       left_join(x, by = "gen") |> filter(set == i)

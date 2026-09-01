@@ -21,6 +21,7 @@ format:
     fig-align: center
     fig-cap-location: margin
     fig-dpi: 400
+    code-summary: "Show code"
     embed-resources: true
     lang: pt
     auto-stretch: false
@@ -56,10 +57,10 @@ Day 2: Genomic selection under the genotype-by-environment interaction
 
 <hr style="height: 2px; border: none; background-color: #b2bc63;">
 
-**Saulo Chaves**
+[<span style="color: #10342d !important; opacity: 0.94 !important;">**Saulo Chaves**</span>](https://saulo-chaves.github.io/)
 
 :::: {style="font-size: 0.70em; opacity: 0.9;width: 70%;"}
-Assistant Professor
+[<span style="color: #10342d !important; opacity: 0.9 !important;">Assistant Professor </span>](https://www.genetica.esalq.usp.br/)
 ::::
 
 :::: {style="font-size: 0.70em; opacity: 0.7;width: 70%;"}
@@ -616,7 +617,7 @@ ggarrange(
 ## Dimensionality {.custom1}
 
 ::: incremental
--   Marked-based models are harder to fit
+-   Marker-based models are harder to fit
 -   Dimensionality increase
 -   More appropriate (with equivalent results): Genotype-based models
 -   [GBLUP]{.green} (or RKHS, in BGLR)
@@ -625,28 +626,33 @@ ggarrange(
 
 . . .
 
+-   Multi-environment GBLUP model:
+
 $$
-\boldsymbol y =  \boldsymbol X \boldsymbol b + \boldsymbol Z \boldsymbol u + \boldsymbol \varepsilon
+\boldsymbol y =  \boldsymbol X \boldsymbol e + \boldsymbol Z_1 \boldsymbol g + \boldsymbol Z_2 \boldsymbol {ge} + \boldsymbol \varepsilon
 $$
 
 ## GBLUP {.custom1}
 
 $$
 \begin{bmatrix}
-\boldsymbol{X}^\prime \boldsymbol X & \boldsymbol X^\prime \boldsymbol Z \\
-\boldsymbol Z^\prime \boldsymbol X & \left(\boldsymbol Z^\prime \boldsymbol Z + \lambda \boldsymbol{G}^{-1} \right)
+\boldsymbol{X}^\prime \boldsymbol X & \boldsymbol X^\prime \boldsymbol Z_1 & \boldsymbol X^\prime \boldsymbol Z_2  \\
+\boldsymbol Z_1^\prime \boldsymbol X & \left(\boldsymbol Z_1^\prime \boldsymbol Z_1 + \lambda_1 \boldsymbol{G}^{-1}  \right) & \boldsymbol Z_1^\prime\boldsymbol Z_2 \\
+\boldsymbol Z_2^\prime \boldsymbol X & \boldsymbol Z^\prime_2\boldsymbol Z_1 & \left(\boldsymbol Z_2^\prime \boldsymbol Z_2 + \lambda_2 \boldsymbol{G}^{-1}  \right)
 \end{bmatrix} \begin{bmatrix}
-\boldsymbol b \\
-\boldsymbol g
+\boldsymbol e \\
+\boldsymbol g \\
+\boldsymbol {ge}
 \end{bmatrix} =
 \begin{bmatrix}
-\boldsymbol X' \boldsymbol y \\
-\boldsymbol Z' \boldsymbol y
+\boldsymbol X^\prime \boldsymbol y \\
+\boldsymbol Z_1^\prime \boldsymbol y  \\ 
+\boldsymbol Z_2^\prime \boldsymbol y 
 \end{bmatrix}
 $$
 
--   $\lambda \to$ Shrinkage factor
--   $\boldsymbol G \to$ Kinship matrix 
+-   $\lambda_1$ and $\lambda_2 \to$ Shrinkage factors
+-   $\boldsymbol G \to$ Relationship matrix 
 
 
 
@@ -654,22 +660,29 @@ $$
 
 **Numerator relationship matrix**
 
+::: {style="font-size: 95%;"}
 -   Derived from the pedigree 
+:::
 
 . . . 
 
+::: {style="font-size: 95%;"}
 -   Diagonal: $1 + F_i$ (inbreeding coefficient)
+:::
 
 . . .
 
+::: {style="font-size: 95%;"}
 -   Off-diagonal: Numerator of the coefficient of relationship:
 
 $$
 r_{ii^\prime} = \frac{a_{ii^\prime}}{\sqrt{\left(1 + F_i\right)\left(1 + F_{i^\prime}\right)}}
 $$
+:::
 
 . . .
 
+::: {style="font-size: 95%;"}
 -   Twice the coefficient of coancestry (The probability that an allele in X is IBD to an allele in the same locus in Y)
 
 $$
@@ -679,13 +692,13 @@ a_{ii^\prime} \begin{cases}
 \mbox{Parent-offspring} \to \frac{1}{2}
 \end{cases}
 $$
-
+:::
 
 ## Relationship matrices {.custom1}
 
 **Numerator relationship matrix**: Average (expected) relationship
 
-![](C:/Users/saulo/OneDrive/Palestras/Misc//Amat.png){fig-align="center" width="100%"}
+![](C:/Users/saulo/OneDrive/Palestras/Misc//Amat.png){fig-align="center" width="60%"}
 
 
 ## Relationship matrices {.custom1}
@@ -714,7 +727,7 @@ $$
 
 **Genomic relationship matrix**: Realized relationship
 
-![](C:/Users/saulo/OneDrive/Palestras/Misc/Gmat.png){fig-align="center" width="100%"}
+![](C:/Users/saulo/OneDrive/Palestras/Misc/Gmat.png){fig-align="center" width="60%"}
 
 
 ## Relationship matrices {.custom1}
@@ -733,8 +746,12 @@ $$
 
 ## Relationship matrices {.custom1}
 
+::::: columns
+::: {.column width="50%"}
+
 -   Centred marker matrix: 
 
+::: {style="font-size: 90%;"}
 $$
 \dot{\boldsymbol W} = \begin{bmatrix}
 2 & 2 & 2 & 2 & 2 & 2 \\ 
@@ -744,11 +761,16 @@ $$
 1   & 2   & 2   & 1   & 1   & 1 
 \end{bmatrix} - 2p
 $$
+:::
 
-. . .
+
+:::
+
+::: {.column .fragment width="50%"}
 
 -   Mathematical expectation of the allelic dosage
 
+::: {style="font-size: 90%;"}
 $$
 \begin{cases} 
 AA \to w_{ij} = 2 \\
@@ -756,7 +778,11 @@ Aa \to w_{ij} = 1 \\
 aa  \to w_{ij} = 0 \\
 \end{cases}
 $$
+:::
 
+. . .
+
+::: {style="font-size: 90%;"}
 $$
 \begin{align}
 \operatorname{E}\left(W\right) &= 2p^2 + 1\times2p(1-p) + 0 (1-p)^2 \\
@@ -764,11 +790,17 @@ $$
 &= 2p
 \end{align}
 $$
+:::
+:::
+
+:::::
+
 
 ## Relationship matrices {.custom1}
 
 -   Centred marker matrix (F~2~ population): $p = 0.5$
 
+::: {style="font-size: 90%;"}
 $$
 \dot{\boldsymbol W} = \begin{bmatrix}
 2 & 2 & 2 & 2 & 2 & 2 \\ 
@@ -784,6 +816,7 @@ $$
 0   & 1   & 1   & 0   & 0   & 0 
 \end{bmatrix}
 $$
+:::
 
 ```{r echo=FALSE}
 W = matrix(c(
@@ -791,9 +824,14 @@ W = matrix(c(
 ), nrow = 5, byrow = TRUE)
 ```
 
-
 . . .
 
+::::: columns
+::: {.column width="50%"}
+
+-   Centred marker matrix: 
+
+::: {style="font-size: 90%;"}
 $$
 \dot{\boldsymbol W} \dot{\boldsymbol W}^\prime = \begin{bmatrix}
 6&2&0&3&2 \\
@@ -803,15 +841,24 @@ $$
 2&1&0&1&2 \\
 \end{bmatrix}
 $$
+:::
+
+
+:::
+
+::: {.column .fragment width="50%"}
 
 -   Diagonal: Number of homozygous loci
 -   Off-diagonal: mean number of shared alleles
+
+:::::
 
 
 ## Relationship matrices {.custom1}
 
 -   Centred marker matrix in real life: variable allele frequencies
 
+::: {style="font-size: 90%;"}
 $$
 \boldsymbol P^\prime = \begin{bmatrix} 0.334 & 0.5 & 0.167 & 0.167 & 0.334 & 0.5 \\
 \vdots & \vdots & \vdots & \vdots & \vdots & \vdots \\ 
@@ -820,10 +867,11 @@ $$
 ```{r echo=FALSE}
 P = matrix(c(.334,.5,.167,.167,.334,.5))
 ```
-
+:::
 
 . . .
 
+::: {style="font-size: 90%;"}
 $$
 \dot{\boldsymbol W} = \begin{bmatrix}
 2 & 2 & 2 & 2 & 2 & 2 \\ 
@@ -839,6 +887,7 @@ $$
 0.332&1&1.666&0.666&0.332&0 \\
 \end{bmatrix}
 $$
+:::
 
 ## Relationship matrices {.custom1}
 
@@ -860,6 +909,25 @@ $$
 
 -   Information on a similar scale as $\boldsymbol A$
 
+
+## Multi-environment GS model {.custom1}
+
+**Reaction norm model via RKHS (Reproducing Kernel Hilbert Space)**
+
+$$
+\bar{\boldsymbol y} = \boldsymbol 1 \mu  + \boldsymbol X \boldsymbol e + \boldsymbol Z_1 \boldsymbol g + \boldsymbol Z_2 \boldsymbol {ge} +  \boldsymbol \varepsilon
+$$
+
+::: incremental
+
+-   $\boldsymbol e \to$ Fixed effect of environment
+-   $\boldsymbol g \to$ Random main genetic effect
+    -   $\boldsymbol g \sim \mathcal N \left(\boldsymbol 0, \boldsymbol K_g \sigma^2_g\right)$
+-   $\boldsymbol {ge} \to$ Random effect of the genotype-by-environment interaction
+    -   $\boldsymbol {ge} \sim \mathcal N \left(\boldsymbol 0, \boldsymbol K_{ge} \sigma^2_{ge}\right)$
+-   $\varepsilon_{ij} \to$ IID residual
+
+:::
 
 ## Cross-validations {.custom1}
 

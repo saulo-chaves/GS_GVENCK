@@ -12,6 +12,7 @@ format:
     code-overflow: scroll
     code-line-numbers: false
     code-copy: hover
+    code-summary: "Show code"
     touch: true
     code-fold: false
     multiplex: false
@@ -57,10 +58,10 @@ Day 2: Genomic selection under the genotype-by-environment interaction
 
 <hr style="height: 2px; border: none; background-color: #b2bc63;">
 
-**Saulo Chaves**
+[<span style="color: #10342d !important; opacity: 0.94 !important;">**Saulo Chaves**</span>](https://saulo-chaves.github.io/)
 
 :::: {style="font-size: 0.70em; opacity: 0.9;width: 70%;"}
-Assistant Professor
+[<span style="color: #10342d !important; opacity: 0.9 !important;">Assistant Professor </span>](https://www.genetica.esalq.usp.br/)
 ::::
 
 :::: {style="font-size: 0.70em; opacity: 0.7;width: 70%;"}
@@ -339,9 +340,9 @@ Expanded $\boldsymbol G$ (for three environments)
 
 ```{r echo=TRUE}
 #| code-fold: true
-
 aux = do.call(c, lapply(split(dat, dat$env), nrow))
 submat = ZGZ[1:sum(aux[1:3]),1:sum(aux[1:3])]
+col_fun = colorRamp2(c(min(submat), 0, max(submat)), c("blue4", "white", "green4"))
 
 Heatmap(
   submat,
@@ -376,8 +377,8 @@ Only 1s and 0s!
 
 ```{r echo=TRUE}
 #| code-fold: true
-
 submat = ZEZ[1:sum(aux[1:4]), 1:sum(aux[1:4])]
+col_fun = colorRamp2(c(min(submat), 0, max(submat)), c("blue4", "white", "green4"))
 
 Heatmap(
   submat,
@@ -412,8 +413,8 @@ dim(GEI)
 
 ```{r echo=TRUE}
 #| code-fold: true
-
 submat = GEI[1:sum(aux[1:5]),1:sum(aux[1:5])]
+col_fun = colorRamp2(c(min(submat), 0, max(submat)), c("blue4", "white", "green4"))
 
 Heatmap(
   submat,
@@ -519,8 +520,8 @@ $\boldsymbol X_g$:
 
 ```{r echo=TRUE}
 #| code-fold: true
-
 submat = X_g[1:sum(aux[1:2]),1:50]
+col_fun = colorRamp2(c(min(submat), 0, max(submat)), c("blue4", "white", "green4"))
 
 Heatmap(
   X_g,
@@ -542,6 +543,7 @@ $\boldsymbol X_ge$:
 
 ```{r}
 #| code-fold: true
+col_fun = colorRamp2(c(min(X_ge), 0, max(X_ge)), c("blue4", "white", "green4"))
 Heatmap(
   X_ge,
   show_row_dend = FALSE,

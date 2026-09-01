@@ -23,6 +23,7 @@ format:
     fig-dpi: 400
     embed-resources: true
     lang: pt
+    code-summary: "Show code"
     auto-stretch: false
     bibliography: C:/Users/saulo/OneDrive/Palestras/Misc//references.bib
     csl: C:/Users/saulo/OneDrive/Palestras/Misc//apa.csl
@@ -31,7 +32,7 @@ format:
     show-slide-number: all
     callout-appearance: simple
     nocite: |
-     @bernardo_prediction_1994, @meuwissen_prediction_2001, @zhou_systematic_2017, @habier_genomic_2013, @voss-fels_accelerating_2019, @werner_genomic_2023, @pereira_new_2025
+     @bernardo_prediction_1994, @meuwissen_prediction_2001, @zhou_systematic_2017, @voss-fels_accelerating_2019, @werner_genomic_2023, @kushanov_genetic_2021, @james_introduction_2013, @alemu_genomic_2024, @gezan_experimental_2017, @zhou_systematic_2017, @werner_genomic_2023, @akdemir_efficient_2016, @marulanda_optimum_2016, @fernandez-gonzalez_comparison_2023, @gaynor_two-part_2017, @niehoff_improving_2024, @el-dien_genomic_2024, @covarrubias-pazaran_breeding_2022
     include-in-header: "C:/Users/saulo/OneDrive/Palestras/Misc//zoom-in-out2.html"
     # height: 800
 editor_options:
@@ -57,10 +58,10 @@ Day 1: Fundamentals of genomic selection
 
 <hr style="height: 2px; border: none; background-color: #b2bc63;">
 
-**Saulo Chaves**
+[<span style="color: #10342d !important; opacity: 0.94 !important;">**Saulo Chaves**</span>](https://saulo-chaves.github.io/)
 
 :::: {style="font-size: 0.70em; opacity: 0.9;width: 70%;"}
-Assistant Professor
+[<span style="color: #10342d !important; opacity: 0.9 !important;">Assistant Professor </span>](https://www.genetica.esalq.usp.br/)
 ::::
 
 :::: {style="font-size: 0.70em; opacity: 0.7;width: 70%;"}
@@ -518,7 +519,7 @@ Selection based on the identified QTL
 
 ```{=html}
 <div class="figure-with-source">
-  <img src="C:/Users/saulo/OneDrive/Palestras/Misc/mas2.jpg" style="width: 70%;" />
+  <img src="C:/Users/saulo/OneDrive/Palestras/Misc/mas2.jpg" style="width: 75%;" />
   <div class="figure-source">
     <a href="https://www.frontiersin.org/journals/plant-science/articles/10.3389/fpls.2021.779386/full" target="_blank">Kushanov et al. (2021)</a>
   </div>
@@ -585,7 +586,7 @@ Selection based on the identified QTL
 
 . . .
 
-::: {.callout-note style="font-size: 1.3em"}
+::: {.callout-note style="font-size: 1.35em"}
 
 The main differences between QTL mapping, genome-wide association studies and genomic selection are in the objectives (inference or prediction) and in the statistical methods used to model the genetic effects
 
@@ -645,11 +646,13 @@ Identity-by-descent (IBD) and Identity-by-state (IBS)
 
 ## Why does it work? {.custom1}
 
+Linkage between marker and QTL
+
 ```{=html}
 <div class="figure-with-source">
-  <img src="C:/Users/saulo/OneDrive/Palestras/Misc//mapa1.png" style="width: 100%;" />
+  <img src="C:/Users/saulo/OneDrive/Palestras/Misc/liga.png" style="width: 80%;" />
   <div class="figure-source">
-    <a href="" target="_blank">Guilherme Pereira</a>
+    <a href="https://h2.flipswitch.com/LinkPageProvider/Launch?pageIdentifier=79fd49ed-c82f-435a-96f4-c088ba21015c" target="_blank">Aldona Griskeviciene/StrongMind</a>
   </div>
 </div>
 ```
@@ -690,7 +693,7 @@ $$
 
 . . .
 
-::: {.callout-caution style="font-size: 1.5em;"}
+::: {.callout-caution style="font-size: 1.3em;"}
 
 ## In the multiple regression setting...
 
