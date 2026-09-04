@@ -14,6 +14,8 @@ GS_GVENCK/
 │   └── weather_seasons.csv             # Dados climáticos coletados a partir de estações meteorológicas próximas
 ├── Presentations/
 │   ├── day1.html                       # Apresentação do primeiro dia de curso
+│   ├── day2.html                       # Apresentação do segundo dia de curso
+│   └── day3.html                       # Apresentação do terceiro dia de curso
 ├── Saves/
 │   ├── RDA                             # Pasta com arquivos de salvamento do R com resultados dos modelos já rodados
 │   └── dat                             # Pasta com arquivos .dat com as posterioris construídas pelo BGLR
